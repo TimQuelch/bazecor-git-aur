@@ -3,13 +3,13 @@
 _pkgname="bazecor"
 _branch="development"
 pkgname="${_pkgname}-git"
-pkgver=1.3.10_rc.2.3305
+pkgver=1.3.10_rc.3.3368
 pkgrel=1
 pkgdesc="Graphical configurator for Dygma Raise. Development branch"
 url="https://github.com/Dygmalab/Bazecor"
 license=("GPL3")
 depends=("fuse")
-makedepends=("yarn" "git" "nvm" "squashfs-tools")
+makedepends=("yarn" "git" "nvm" "squashfs-tools" "python")
 provides=("${_pkgname}")
 conflicts=("${_pkgname}")
 arch=("x86_64")
@@ -46,6 +46,11 @@ build() {
     _ensure_local_nvm
     cd "$srcdir/$pkgname" || return
     yarn || /bin/true           # yarn errors, but seems to still work
+
+    # mksquashfs will throw a error if both the SOURCE_DATE_EPOCH 
+    # environment variable and the -all-time flag are set.
+    unset SOURCE_DATE_EPOCH
+
     yarn run make-lin
 
     _appimage=$(find . -iname "*.AppImage")
@@ -53,7 +58,7 @@ build() {
     cd .. || return
     ${srcdir}/${pkgname}/"${_appimage}" --appimage-extract
 
-    sed -i -E "s|Exec=AppRun|Exec=/usr/bin/${_pkgname}|" "squashfs-root/${_pkgname}.desktop"
+    sed -i -E "s|Exec=AppRun|Exec=/usr/bin/${_pkgname}|" "squashfs-root/${_pkgname^}.desktop"
     chmod -R a-x+rX squashfs-root/usr
 }
 
@@ -67,7 +72,7 @@ package() {
     ln -s "/opt/${_pkgname}/${_pkgname}.AppImage" "${pkgdir}/usr/bin/${_pkgname}"
 
     # Desktop file
-    install -Dm644 "${srcdir}/squashfs-root/${_pkgname}.desktop"\
+    install -Dm644 "${srcdir}/squashfs-root/${_pkgname^}.desktop"\
         "${pkgdir}/usr/share/applications/${_pkgname}.desktop"
 
     # Icons
