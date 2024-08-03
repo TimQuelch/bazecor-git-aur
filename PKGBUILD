@@ -16,6 +16,7 @@ arch=("x86_64")
 source=("${pkgname}::git+https://github.com/Dygmalab/Bazecor.git#branch=${_branch}")
 cksums=("SKIP")
 options=(!strip)
+install="bazecor.install"
 
 # From https://wiki.archlinux.org/title/Node.js_package_guidelines
 _ensure_local_nvm() {
@@ -42,6 +43,27 @@ prepare() {
     nvm use 20
 }
 
+_extract_udev_rules() {
+    udevPath=${srcdir}/${pkgname}/src/main/utils/udev.ts
+
+    udevPatchedName=udev-patched.ts
+
+    pushd "$(dirname $udevPath)"
+
+    cp "$(basename "$udevPath")" "$udevPatchedName"
+    echo "process.stdout.write(filename)" >> "$udevPatchedName"
+    udevFilename=$(npm exec ts-node -- "$udevPatchedName")
+
+    cp "$(basename "$udevPath")" "$udevPatchedName"
+    echo "process.stdout.write(udevRulesToWrite)" >> $udevPatchedName
+    udevContents=$(npm exec ts-node -- "$udevPatchedName")
+
+    rm "$udevPatchedName"
+    popd
+
+    echo "$udevContents" > "${srcdir}/${pkgname}/$(basename "$udevFilename")"
+}
+
 build() {
     _ensure_local_nvm
     cd "$srcdir/$pkgname" || return
@@ -60,6 +82,8 @@ build() {
 
     sed -i -E "s|Exec=AppRun|Exec=/usr/bin/${_pkgname}|" "squashfs-root/${_pkgname^}.desktop"
     chmod -R a-x+rX squashfs-root/usr
+
+    _extract_udev_rules
 }
 
 package() {
@@ -70,6 +94,11 @@ package() {
     # Symlink AppImage
     install -dm755 "${pkgdir}/usr/bin"
     ln -s "/opt/${_pkgname}/${_pkgname}.AppImage" "${pkgdir}/usr/bin/${_pkgname}"
+
+    # udev rules
+    # we assume that the filename extracted for udev rules has the suffix ".rules"
+    _udevRules=$(find "${srcdir}/${pkgname}" -maxdepth 1 -iname "*.rules")
+    install -Dm755 "${_udevRules}" "${pkgdir}/etc/udev/rules.d/$(basename $_udevRules)"
 
     # Desktop file
     install -Dm644 "${srcdir}/squashfs-root/${_pkgname^}.desktop"\

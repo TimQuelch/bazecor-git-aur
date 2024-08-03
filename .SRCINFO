@@ -3,6 +3,7 @@ pkgbase = bazecor-git
 	pkgver = 1.4.3.4439
 	pkgrel = 1
 	url = https://github.com/Dygmalab/Bazecor
+	install = bazecor.install
 	arch = x86_64
 	license = GPL3
 	makedepends = yarn
