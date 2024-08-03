@@ -3,7 +3,7 @@
 _pkgname="bazecor"
 _branch="development"
 pkgname="${_pkgname}-git"
-pkgver=1.3.10_rc.3.3368
+pkgver=1.4.3.4439
 pkgrel=1
 pkgdesc="Graphical configurator for Dygma Raise. Development branch"
 url="https://github.com/Dygmalab/Bazecor"
@@ -38,8 +38,8 @@ pkgver() {
 
 prepare() {
     _ensure_local_nvm
-    nvm install 18
-    nvm use 18
+    nvm install 20
+    nvm use 20
 }
 
 build() {
