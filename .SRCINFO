@@ -11,6 +11,7 @@ pkgbase = bazecor-git
 	makedepends = nvm
 	makedepends = squashfs-tools
 	makedepends = python
+	makedepends = jq
 	depends = fuse
 	provides = bazecor
 	conflicts = bazecor

@@ -9,7 +9,7 @@ pkgdesc="Graphical configurator for Dygma Raise. Development branch"
 url="https://github.com/Dygmalab/Bazecor"
 license=("GPL3")
 depends=("fuse")
-makedepends=("yarn" "git" "nvm" "squashfs-tools" "python")
+makedepends=("yarn" "git" "nvm" "squashfs-tools" "python" "jq")
 provides=("${_pkgname}")
 conflicts=("${_pkgname}")
 arch=("x86_64")
@@ -33,7 +33,7 @@ _ensure_local_nvm() {
 pkgver() {
     cd "$srcdir/$pkgname" || return
     printf "%s.%s" \
-        "$(grep "\"version\":" package.json | sed 's/^.*"\S*".*"\(\S*\)".*$/\1/' | sed 's/-/_/g')" \
+        "$(jq -r '.version' package.json | sed 's/-/_/g')" \
         "$(git rev-list --count HEAD)"
 }
 
